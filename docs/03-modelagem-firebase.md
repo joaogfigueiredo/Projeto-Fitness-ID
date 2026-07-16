@@ -28,6 +28,8 @@ Nossa modelagem seguirá os princípios:
 - Leitura rápida
 - Escritas simples
 - Evitar consultas complexas
+- Separação entre dados de configuração e dados do usuário
+- Modelagem orientada à leitura (Read Optimized)
 - Evitar duplicação desnecessária de dados
 
 ---
@@ -38,15 +40,19 @@ O banco será organizado em coleções.
 
 Coleções principais:
 
+Coleções principais:
+
 - users
-- workouts
-- exercise_logs
-- diets
-- checkins
+- exerciseLibrary
+- workoutTemplates
+- exerciseLogs
+- foodLibrary
+- dietPlans
+- checkIns
+- plans
 - subscriptions
 - payments
 - notifications
-- progression
 
 ---
 
@@ -74,7 +80,10 @@ Campos:
 - photoUrl
 - birthDate
 - gender
+- coachId
 - height
+- goal
+- activityLevel
 - createdAt
 - updatedAt
 - active
@@ -127,9 +136,31 @@ Campos:
 
 ---
 
-# 6. Histórico e Progressão
+# 6 Coleção exerciseLibrary
+
+Responsável por armazenar todos os exercícios disponíveis no sistema.
+
+Essa coleção será utilizada por todos os coaches para montar treinos.
+
+Campos:
+
+- id
+- name
+- muscleGroup
+- equipment
+- difficulty
+- instructions
+- videoUrl
+- imageUrl
+- active
+
+# 7. Histórico 
 
 O sistema armazenará o histórico detalhado de todas as execuções dos exercícios.
+
+A progressão de carga e repetições NÃO será armazenada.
+
+Ela será calculada automaticamente a partir do histórico de execução.
 
 Esses dados serão utilizados para gerar automaticamente:
 
@@ -145,7 +176,7 @@ Esses dados serão utilizados para gerar automaticamente:
 
 Esses indicadores serão apresentados ao aluno e ao coach através de gráficos e estatísticas.
 
-# 7. Coleção: exercise_logs
+# 8. Coleção: exercise_logs
 
 Armazena o histórico completo da execução de cada exercício realizado pelo aluno.
 
@@ -162,9 +193,7 @@ Campos:
 - workoutId
 - exerciseId
 - exerciseName
-- workoutDate
-- startedAt
-- finishedAt
+- performedAt
 - observations
 
 Subcoleção:
@@ -181,9 +210,10 @@ Campos:
 - rir (opcional)
 - rpe (opcional)
 - completed
+- restTime
 ---
 
-# 8. Coleção: diets
+# 9. Coleção: dietsPlan
 
 Plano alimentar do aluno.
 
@@ -210,7 +240,21 @@ Cada refeição possuirá:
 
 ---
 
-# 9. Coleção: checkins
+# 10 Coleção: foodLibrary
+
+Biblioteca de alimentos utilizada em todos os planos alimentares.
+
+Campos:
+
+- id
+- name
+- calories
+- protein
+- carbohydrates
+- fat
+- category
+
+# 11. Coleção: checkins
 
 Histórico de check-ins.
 
@@ -226,6 +270,7 @@ Campos:
 - hunger
 - energy
 - progression
+- waterIntake
 
 Subcoleção:
 
@@ -249,13 +294,15 @@ Campos:
 
 ---
 
-# 10. Coleção: subscriptions
+# 12. Coleção: subscriptions
 
 Plano contratado pelo aluno.
 
 Campos:
 
 - studentId
+- planName
+- price
 - planId
 - status
 - startDate
@@ -264,7 +311,7 @@ Campos:
 
 ---
 
-# 11. Coleção: payments
+# 13. Coleção: payments
 
 Histórico financeiro.
 
@@ -277,10 +324,13 @@ Campos:
 - status
 - transactionId
 - paidAt
+- gateway
+- currency
+- receiptUrl
 
 ---
 
-# 12. Coleção: notifications
+# 14. Coleção: notifications
 
 Notificações enviadas ao usuário.
 
@@ -294,7 +344,7 @@ Campos:
 
 ---
 
-# 13. Upload de Arquivos
+# 15. Upload de Arquivos
 
 Os arquivos serão armazenados no Firebase Storage.
 
@@ -316,7 +366,7 @@ profile_photos/
 
 ---
 
-# 14. Relacionamentos
+# 16. Relacionamentos
 
 Coach
 
@@ -376,7 +426,7 @@ Assinatura
 
 ---
 
-# 15. Regras de Nomenclatura
+# 17. Regras de Nomenclatura
 
 Coleções:
 
@@ -410,7 +460,7 @@ coachId
 
 ---
 
-# 16. Campos Padrão
+# 18. Campos Padrão
 
 Sempre que possível os documentos possuirão:
 
@@ -424,7 +474,7 @@ active
 
 ---
 
-# 17. Estratégias de Escalabilidade
+# 19. Estratégias de Escalabilidade
 
 Sempre utilizar referências por ID.
 
@@ -440,7 +490,7 @@ Criar índices apenas quando necessários.
 
 ---
 
-# 18. Segurança
+# 20. Segurança
 
 O acesso será controlado pelas regras do Firestore.
 
@@ -454,7 +504,7 @@ Uploads serão protegidos pelas regras do Firebase Storage.
 
 ---
 
-# 19. Evolução
+# 21. Evolução
 
 O banco foi planejado para permitir futuras integrações:
 
@@ -469,7 +519,7 @@ Sem necessidade de remodelagem completa.
 
 ---
 
-# 20. Considerações Finais
+# 22. Considerações Finais
 
 A modelagem apresentada neste documento representa a primeira versão da estrutura do banco de dados.
 
