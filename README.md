@@ -183,11 +183,11 @@ Toda a documentação técnica será construída durante o desenvolvimento.
 - [x] Ideia do Projeto
 - [x] Levantamento de Funcionalidades
 - [x] Mapa Mental
-- [ ] Documento de Visão
-- [ ] Fluxograma
-- [ ] Casos de Uso
+- [x] Documento de Visão
+- [x] Fluxograma
+- [x] Casos de Uso
 - [ ] Modelagem do Firestore
-- [ ] Arquitetura
+- [x] Arquitetura
 
 ---
 

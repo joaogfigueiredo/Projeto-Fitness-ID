@@ -78,6 +78,7 @@ Campos:
 - phone
 - role
 - photoUrl
+- crefNumber
 - birthDate
 - gender
 - coachId
