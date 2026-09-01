@@ -86,6 +86,9 @@ O projeto está sendo desenvolvido como parte de um estudo prático de Engenhari
 
 ## Frontend
 
+- HTML
+- CSS
+- Javascript
 - Flutter
 - Dart
 
@@ -247,6 +250,9 @@ Este projeto tem como finalidade aprofundar conhecimentos em:
 - Backend Serverless
 - Firebase
 - Flutter
+- HTML
+- CSS
+- JavaScript
 - Git
 - Banco de Dados NoSQL
 - Design de Software
