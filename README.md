@@ -91,6 +91,7 @@ O projeto está sendo desenvolvido como parte de um estudo prático de Engenhari
 - Javascript
 - Flutter
 - Dart
+- Node.js
 
 ## Backend
 
