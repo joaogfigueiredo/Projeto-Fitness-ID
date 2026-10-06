@@ -84,21 +84,30 @@ O projeto está sendo desenvolvido como parte de um estudo prático de Engenhari
 
 #  Tecnologias
 
-## Frontend
+## Aplicativo Mobile
 
-- HTML
-- CSS
-- Javascript
 - Flutter
 - Dart
-- Node.js
+
+## Aplicação Web
+
+- React
+- TypeScript
+- HTML
+- CSS
+- JavaScript
 
 ## Backend
+
+- Node.js
+- TypeScript
+- Firebase Cloud Functions
+
+## Firebase
 
 - Firebase Authentication
 - Cloud Firestore
 - Firebase Storage
-- Cloud Functions
 - Firebase Cloud Messaging
 - Firebase Analytics
 
@@ -115,18 +124,30 @@ O projeto está sendo desenvolvido como parte de um estudo prático de Engenhari
 - Draw.io
 - Canva
 - Figma
-
 ---
 
 #  Plataformas
 
+## Aplicativo Mobile
+
 - Android
 - iOS
+
+## Aplicação Web
+
 - Web
 
 ---
 
 #  Arquitetura
+
+O projeto será dividido em três principais camadas de aplicação:
+
+- Aplicativo Mobile: Flutter + Dart
+- Aplicação Web: React + TypeScript
+- Backend: Node.js + TypeScript
+
+A infraestrutura será baseada em Firebase, utilizando seus serviços para autenticação, banco de dados, armazenamento e comunicação.
 
 O projeto seguirá uma arquitetura baseada em:
 
@@ -143,13 +164,13 @@ Cada funcionalidade será organizada em módulos independentes, facilitando manu
 ```text
 fitness-id/
 
-├── app/
-├── backend/
-├── docs/
-├── assets/
-├── database/
-
-README.md
+├── mobile/          # Aplicativo Flutter
+├── web/             # Aplicação React
+├── backend/         # Node.js / TypeScript
+├── docs/            # Documentação
+├── assets/          # Recursos visuais
+├── database/        # Modelagem do banco
+└── README.md
 ```
 
 ---
@@ -263,9 +284,12 @@ Este projeto tem como finalidade aprofundar conhecimentos em:
 
 #  Status do Projeto
 
- Em Planejamento
 
-Atualmente o projeto encontra-se na fase de documentação, modelagem e definição da arquitetura antes do início do desenvolvimento.
+Em Desenvolvimento
+
+A fase de planejamento, documentação, modelagem, arquitetura e definição das interfaces foi concluída.
+
+Atualmente o projeto está entrando na fase de implementação, iniciando pela configuração do ambiente de desenvolvimento, estruturação do projeto Flutter e integração com o Firebase.
 
 ---
 
