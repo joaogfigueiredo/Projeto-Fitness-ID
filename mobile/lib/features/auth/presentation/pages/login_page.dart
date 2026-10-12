@@ -51,23 +51,30 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(
-                      Icons.pets,
-                      size: 86,
-                      color: Colors.white,
+                    // Logo original do lobo.
+                    Image.asset(
+                      'assets/images/fitness_id_logo_noname.png',
+                      height: 110,
+                      fit: BoxFit.contain,
                     ),
+
                     const SizedBox(height: 12),
+
+                    // Nome do aplicativo com a fonte personalizada.
                     const Text(
                       'FITNESS ID',
                       textAlign: TextAlign.center,
                       style: TextStyle(
+                        fontFamily: 'FitnessIdLogo',
                         color: Colors.white,
                         fontSize: 36,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 2,
                       ),
                     ),
+
                     const SizedBox(height: 8),
+
                     const Text(
                       'Sua jornada fitness começa aqui',
                       textAlign: TextAlign.center,
@@ -77,7 +84,9 @@ class _LoginPageState extends State<LoginPage> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+
                     const SizedBox(height: 42),
+
                     const Text(
                       'SIGN IN',
                       textAlign: TextAlign.center,
@@ -87,7 +96,10 @@ class _LoginPageState extends State<LoginPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
                     const SizedBox(height: 24),
+
+                    // Campo de e-mail.
                     TextField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -98,7 +110,10 @@ class _LoginPageState extends State<LoginPage> {
                         icon: Icons.person_outline,
                       ),
                     ),
+
                     const SizedBox(height: 16),
+
+                    // Campo de senha com opção de mostrar ou ocultar.
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
@@ -123,7 +138,10 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 12),
+
+                    // Opção de manter conectado e recuperação de senha.
                     Row(
                       children: [
                         Checkbox(
@@ -160,7 +178,10 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 18),
+
+                    // Botão de entrada.
                     SizedBox(
                       height: 58,
                       child: ElevatedButton(
@@ -185,7 +206,9 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 28),
+
                     const Text(
                       'Não tem uma conta?',
                       textAlign: TextAlign.center,
@@ -194,7 +217,10 @@ class _LoginPageState extends State<LoginPage> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+
                     const SizedBox(height: 14),
+
+                    // Botão de cadastro.
                     SizedBox(
                       height: 56,
                       child: OutlinedButton(
@@ -222,10 +248,15 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 30),
+
+                    // Separador da opção de login social.
                     const Row(
                       children: [
-                        Expanded(child: Divider(color: Colors.white12)),
+                        Expanded(
+                          child: Divider(color: Colors.white12),
+                        ),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
@@ -237,10 +268,15 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ),
-                        Expanded(child: Divider(color: Colors.white12)),
+                        Expanded(
+                          child: Divider(color: Colors.white12),
+                        ),
                       ],
                     ),
+
                     const SizedBox(height: 20),
+
+                    // Botão provisório de login com Google.
                     Center(
                       child: IconButton(
                         onPressed: () {
@@ -275,6 +311,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // Estilo compartilhado pelos campos de e-mail e senha.
   InputDecoration _inputDecoration({
     required String hint,
     required IconData icon,
@@ -296,6 +333,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // Validação provisória até a integração com o Firebase.
   void _login() {
     if (_emailController.text.trim().isEmpty ||
         _passwordController.text.isEmpty) {
@@ -308,6 +346,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // Exibe mensagens na parte inferior da tela.
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
