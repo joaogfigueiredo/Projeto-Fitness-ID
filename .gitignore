@@ -45,3 +45,5 @@ Thumbs.db
 
 # Configurações locais do Firebase
 mobile/android/app/google-services.json
+
+mobile/android/.kotlin/
