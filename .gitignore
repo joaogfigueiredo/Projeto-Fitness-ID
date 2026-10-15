@@ -42,3 +42,6 @@ Thumbs.db
 # =========================
 
 *.local
+
+# Configurações locais do Firebase
+mobile/android/app/google-services.json
