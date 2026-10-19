@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,6 +13,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  bool _isLoading = false;
   bool _obscurePassword = true;
   bool _keepConnected = false;
 
@@ -51,16 +53,12 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Logo original do lobo.
                     Image.asset(
                       'assets/images/fitness_id_logo_noname.png',
                       height: 110,
                       fit: BoxFit.contain,
                     ),
-
                     const SizedBox(height: 12),
-
-                    // Nome do aplicativo com a fonte personalizada.
                     const Text(
                       'FITNESS ID',
                       textAlign: TextAlign.center,
@@ -72,9 +70,7 @@ class _LoginPageState extends State<LoginPage> {
                         letterSpacing: 2,
                       ),
                     ),
-
                     const SizedBox(height: 8),
-
                     const Text(
                       'Sua jornada fitness começa aqui',
                       textAlign: TextAlign.center,
@@ -84,9 +80,7 @@ class _LoginPageState extends State<LoginPage> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-
                     const SizedBox(height: 42),
-
                     const Text(
                       'SIGN IN',
                       textAlign: TextAlign.center,
@@ -96,7 +90,6 @@ class _LoginPageState extends State<LoginPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 24),
 
                     // Campo de e-mail.
@@ -110,10 +103,9 @@ class _LoginPageState extends State<LoginPage> {
                         icon: Icons.person_outline,
                       ),
                     ),
-
                     const SizedBox(height: 16),
 
-                    // Campo de senha com opção de mostrar ou ocultar.
+                    // Campo de senha.
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
@@ -138,10 +130,9 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 12),
 
-                    // Opção de manter conectado e recuperação de senha.
+                    // Opções de acesso.
                     Row(
                       children: [
                         Checkbox(
@@ -163,11 +154,9 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {
-                            _showMessage(
-                              'A recuperação de senha será conectada ao Firebase.',
-                            );
-                          },
+                          onPressed: _isLoading
+                              ? null
+                              : _resetPassword,
                           child: const Text(
                             'Esqueceu sua senha?',
                             style: TextStyle(
@@ -178,14 +167,13 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 18),
 
-                    // Botão de entrada.
+                    // Botão de login com indicador de carregamento.
                     SizedBox(
                       height: 58,
                       child: ElevatedButton(
-                        onPressed: _login,
+                        onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFE50914),
                           foregroundColor: Colors.white,
@@ -197,18 +185,25 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text(
-                          'ENTRAR',
-                          style: TextStyle(
-                            fontSize: 21,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'ENTRAR',
+                                style: TextStyle(
+                                  fontSize: 21,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
-
                     const SizedBox(height: 28),
-
                     const Text(
                       'Não tem uma conta?',
                       textAlign: TextAlign.center,
@@ -217,10 +212,9 @@ class _LoginPageState extends State<LoginPage> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-
                     const SizedBox(height: 14),
 
-                    // Botão de cadastro.
+                    // Cadastro será implementado na próxima etapa.
                     SizedBox(
                       height: 56,
                       child: OutlinedButton(
@@ -248,10 +242,9 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 30),
 
-                    // Separador da opção de login social.
+                    // Separador do login social.
                     const Row(
                       children: [
                         Expanded(
@@ -273,17 +266,19 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 20),
 
-                    // Botão provisório de login com Google.
+                    // Login com Google será conectado em seguida.
                     Center(
                       child: IconButton(
-                        onPressed: () {
-                          _showMessage(
-                            'O login com Google será conectado posteriormente.',
-                          );
-                        },
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                _showMessage(
+                                  'O login com Google será conectado '
+                                  'na próxima etapa.',
+                                );
+                              },
                         style: IconButton.styleFrom(
                           backgroundColor: const Color(0xFF171717),
                           fixedSize: const Size(68, 68),
@@ -311,7 +306,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Estilo compartilhado pelos campos de e-mail e senha.
+  // Estilo compartilhado pelos campos.
   InputDecoration _inputDecoration({
     required String hint,
     required IconData icon,
@@ -333,17 +328,122 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Validação provisória até a integração com o Firebase.
-  void _login() {
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.isEmpty) {
+  // Login real com Firebase Authentication.
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
       _showMessage('Preencha seu e-mail e sua senha.');
       return;
     }
 
-    _showMessage(
-      'A interface está pronta. A autenticação real será conectada ao Firebase.',
-    );
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (!mounted) return;
+
+      _showMessage('Login realizado com sucesso!');
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      switch (e.code) {
+        case 'invalid-email':
+          _showMessage('O formato do e-mail é inválido.');
+          break;
+        case 'user-not-found':
+        case 'invalid-credential':
+        case 'wrong-password':
+          _showMessage('E-mail ou senha incorretos.');
+          break;
+        case 'user-disabled':
+          _showMessage('Esta conta está desativada.');
+          break;
+        case 'too-many-requests':
+          _showMessage(
+            'Muitas tentativas. Aguarde um pouco e tente novamente.',
+          );
+          break;
+        case 'network-request-failed':
+          _showMessage('Falha de conexão. Verifique sua internet.');
+          break;
+        default:
+          _showMessage('Não foi possível entrar. Tente novamente.');
+      }
+    } catch (_) {
+      if (!mounted) return;
+
+      _showMessage('Ocorreu um erro inesperado durante o login.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Envia o e-mail de recuperação de senha.
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      _showMessage('Informe seu e-mail para recuperar a senha.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: email,
+      );
+
+      if (!mounted) return;
+
+      _showMessage(
+        'Se a conta existir, você receberá as instruções por e-mail.',
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      switch (e.code) {
+        case 'invalid-email':
+          _showMessage('O formato do e-mail é inválido.');
+          break;
+        case 'too-many-requests':
+          _showMessage(
+            'Muitas tentativas. Aguarde um pouco e tente novamente.',
+          );
+          break;
+        case 'network-request-failed':
+          _showMessage('Falha de conexão. Verifique sua internet.');
+          break;
+        default:
+          _showMessage(
+            'Não foi possível solicitar a recuperação. Tente novamente.',
+          );
+      }
+    } catch (_) {
+      if (!mounted) return;
+
+      _showMessage('Ocorreu um erro ao solicitar a recuperação.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   // Exibe mensagens na parte inferior da tela.
