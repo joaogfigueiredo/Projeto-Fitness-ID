@@ -1,8 +1,9 @@
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'core/theme/app_theme.dart';
-import 'features/auth/presentation/pages/login_page.dart';
+import 'features/auth/presentation/pages/auth_gate.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -24,7 +25,7 @@ class FitnessIdApp extends StatelessWidget {
       title: 'Fitness ID',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const LoginPage(),
+      home: const AuthGate(),
     );
   }
 }
