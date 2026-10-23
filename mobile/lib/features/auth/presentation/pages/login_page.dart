@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -334,19 +335,54 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // Validação provisória até a integração com o Firebase.
-  void _login() {
+
+
+  Future<void> _login() async {
     if (_emailController.text.trim().isEmpty ||
         _passwordController.text.isEmpty) {
       _showMessage('Preencha seu e-mail e sua senha.');
       return;
     }
 
-    _showMessage(
-      'A interface está pronta. A autenticação real será conectada ao Firebase.',
-    );
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      _showMessage('Login realizado com sucesso!');
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      switch (e.code) {
+        case 'invalid-email':
+          _showMessage('O formato do e-mail é inválido.');
+          break;
+        case 'user-not-found':
+        case 'invalid-credential':
+        case 'wrong-password':
+          _showMessage('E-mail ou senha incorretos.');
+          break;
+        case 'user-disabled':
+          _showMessage('Esta conta está desativada.');
+          break;
+        case 'too-many-requests':
+          _showMessage('Muitas tentativas. Tente novamente mais tarde.');
+          break;
+        case 'network-request-failed':
+          _showMessage('Falha de conexão. Verifique sua internet.');
+          break;
+        default:
+          _showMessage('Não foi possível entrar. Tente novamente.');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage('Ocorreu um erro inesperado ao entrar.');
+    }
   }
 
-  // Exibe mensagens na parte inferior da tela.
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
