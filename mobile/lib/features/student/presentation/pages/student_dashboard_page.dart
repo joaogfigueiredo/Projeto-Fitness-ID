@@ -19,18 +19,18 @@ class StudentDashboardPage extends StatefulWidget {
 class _StudentDashboardPageState extends State<StudentDashboardPage> {
   int _currentIndex = 0;
 
-  final List<DailyGoal> _goals = const [
-    DailyGoal(
+  final List<DailyGoal> _goals = [
+    const DailyGoal(
       id: '1',
       title: 'Realizar treino do dia',
       subtitle: 'Treino personalizado',
     ),
-    DailyGoal(
+    const DailyGoal(
       id: '2',
       title: 'Seguir o plano alimentar',
       subtitle: 'Alimentação programada',
     ),
-    DailyGoal(
+    const DailyGoal(
       id: '3',
       title: 'Beber 2 litros de água',
       subtitle: 'Hidratação diária',
@@ -61,21 +61,12 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+
     final studentName = user?.displayName ??
         user?.email?.split('@').first ??
         'Aluno';
 
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 0,
-        actions: [
-          IconButton(
-            onPressed: _logout,
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sair',
-          ),
-        ],
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -84,6 +75,7 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
             children: [
               StudentHeader(
                 studentName: studentName,
+                onLogoutTap: _logout,
               ),
 
               const SizedBox(height: 30),
