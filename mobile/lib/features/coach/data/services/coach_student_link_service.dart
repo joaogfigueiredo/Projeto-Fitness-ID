@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/coach_student_link.dart';
@@ -10,11 +11,11 @@ class CoachStudentLinkService {
   }) : _firestore = firestore ?? FirebaseFirestore.instance;
 
   Future<List<CoachStudentLink>> getActiveLinksForCoach(
-    String coachUid,
+    String coachId,
   ) async {
     final snapshot = await _firestore
         .collection('coach_student_links')
-        .where('coachUid', isEqualTo: coachUid)
+        .where('coachId', isEqualTo: coachId)
         .where('isActive', isEqualTo: true)
         .get();
 

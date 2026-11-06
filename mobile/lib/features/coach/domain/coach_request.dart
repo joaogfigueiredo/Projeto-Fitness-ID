@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'coach_profile.dart';
@@ -12,7 +13,7 @@ enum CoachRequestStatus {
 class CoachRequest {
   final String id;
   final String studentId;
-  final String coachUid;
+  final String coachId;
   final List<CoachSpecialty> specialties;
   final CoachRequestStatus status;
   final DateTime requestedAt;
@@ -21,7 +22,7 @@ class CoachRequest {
   const CoachRequest({
     required this.id,
     required this.studentId,
-    required this.coachUid,
+    required this.coachId,
     required this.specialties,
     required this.status,
     required this.requestedAt,
@@ -35,7 +36,7 @@ class CoachRequest {
     return CoachRequest(
       id: id,
       studentId: map['studentId'] as String,
-      coachUid: map['coachUid'] as String,
+      coachId: map['coachId'] as String,
       specialties: (map['specialties'] as List<dynamic>)
           .map(
             (name) => CoachSpecialty.values.firstWhere(

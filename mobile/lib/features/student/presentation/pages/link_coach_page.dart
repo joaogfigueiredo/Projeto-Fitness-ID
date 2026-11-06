@@ -1,9 +1,11 @@
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../coach/data/services/coach_request_service.dart';
+import '../../../coach/data/services/coach_search_service.dart';
 import '../../../coach/domain/coach_profile.dart';
 import '../../../coach/domain/coach_search_result.dart';
-import '../../../coach/data/services/coach_search_service.dart';
 
 class LinkCoachPage extends StatefulWidget {
   const LinkCoachPage({super.key});
@@ -19,12 +21,17 @@ class _LinkCoachPageState extends State<LinkCoachPage> {
   final CoachSearchService _coachSearchService =
       CoachSearchService();
 
+  final CoachRequestService _coachRequestService =
+      CoachRequestService();
+
   CoachSearchResult? _coachResult;
 
   final Set<CoachSpecialty> _selectedSpecialties = {};
 
   bool _isSearching = false;
+  bool _isSendingRequest = false;
   bool _hasSearched = false;
+
   String? _errorMessage;
 
   @override
@@ -33,6 +40,7 @@ class _LinkCoachPageState extends State<LinkCoachPage> {
     super.dispose();
   }
 
+  // Pesquisa um Coach pelo CoachID.
   Future<void> _searchCoach() async {
     final coachId = _coachIdController.text.trim();
 
@@ -86,6 +94,63 @@ class _LinkCoachPageState extends State<LinkCoachPage> {
     }
   }
 
+  // Envia a solicitação de vínculo ao Firestore.
+  Future<void> _sendRequest() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final coach = _coachResult;
+
+    if (user == null || coach == null) {
+      return;
+    }
+
+    if (_selectedSpecialties.isEmpty || _isSendingRequest) {
+      return;
+    }
+
+    setState(() {
+      _isSendingRequest = true;
+    });
+
+    try {
+      await _coachRequestService.createRequest(
+        studentId: user.uid,
+        coachId: coach.coachId,
+        specialties: _selectedSpecialties.toList(),
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Solicitação enviada! Aguarde a aprovação do Coach.',
+          ),
+          backgroundColor: Color(0xFF20C779),
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Não foi possível enviar a solicitação. Tente novamente.',
+          ),
+          backgroundColor: Color(0xFFFF1010),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSendingRequest = false;
+        });
+      }
+    }
+  }
+
+  // Seleciona ou remove uma especialidade.
   void _toggleSpecialty(CoachSpecialty specialty) {
     setState(() {
       if (_selectedSpecialties.contains(specialty)) {
@@ -105,11 +170,14 @@ class _LinkCoachPageState extends State<LinkCoachPage> {
     }
   }
 
+  // Card de seleção de especialidade.
   Widget _buildSpecialtyCard(CoachSpecialty specialty) {
     final isSelected = _selectedSpecialties.contains(specialty);
 
     return GestureDetector(
-      onTap: () => _toggleSpecialty(specialty),
+      onTap: _isSendingRequest
+          ? null
+          : () => _toggleSpecialty(specialty),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
@@ -147,7 +215,9 @@ class _LinkCoachPageState extends State<LinkCoachPage> {
             Checkbox(
               value: isSelected,
               activeColor: const Color(0xFFFF1010),
-              onChanged: (_) => _toggleSpecialty(specialty),
+              onChanged: _isSendingRequest
+                  ? null
+                  : (_) => _toggleSpecialty(specialty),
             ),
           ],
         ),
@@ -155,6 +225,7 @@ class _LinkCoachPageState extends State<LinkCoachPage> {
     );
   }
 
+  // Exibe os dados do Coach encontrado.
   Widget _buildCoachResult() {
     final coach = _coachResult!;
 
@@ -250,22 +321,14 @@ class _LinkCoachPageState extends State<LinkCoachPage> {
 
           const SizedBox(height: 20),
 
+          // Botão de envio da solicitação.
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _selectedSpecialties.isEmpty
+              onPressed: _selectedSpecialties.isEmpty ||
+                      _isSendingRequest
                   ? null
-                  : () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Seleção realizada! O envio da solicitação '
-                            'será implementado na próxima etapa.',
-                          ),
-                          backgroundColor: Color(0xFF242424),
-                        ),
-                      );
-                    },
+                  : _sendRequest,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF1010),
                 disabledBackgroundColor: const Color(0xFF424242),
@@ -275,13 +338,22 @@ class _LinkCoachPageState extends State<LinkCoachPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                'Continuar',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
+              child: _isSendingRequest
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Enviar solicitação',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
             ),
           ),
         ],

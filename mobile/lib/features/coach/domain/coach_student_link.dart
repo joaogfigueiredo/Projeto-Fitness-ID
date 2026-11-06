@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'coach_profile.dart';
@@ -5,7 +6,7 @@ import 'coach_profile.dart';
 class CoachStudentLink {
   final String id;
   final String studentId;
-  final String coachUid;
+  final String coachId;
   final List<CoachSpecialty> specialties;
   final DateTime createdAt;
   final bool isActive;
@@ -13,7 +14,7 @@ class CoachStudentLink {
   const CoachStudentLink({
     required this.id,
     required this.studentId,
-    required this.coachUid,
+    required this.coachId,
     required this.specialties,
     required this.createdAt,
     this.isActive = true,
@@ -22,7 +23,7 @@ class CoachStudentLink {
   Map<String, dynamic> toMap() {
     return {
       'studentId': studentId,
-      'coachUid': coachUid,
+      'coachId': coachId,
       'specialties': specialties
           .map((specialty) => specialty.name)
           .toList(),
@@ -38,7 +39,7 @@ class CoachStudentLink {
     return CoachStudentLink(
       id: id,
       studentId: map['studentId'] as String,
-      coachUid: map['coachUid'] as String,
+      coachId: map['coachId'] as String,
       specialties: (map['specialties'] as List<dynamic>)
           .map(
             (name) => CoachSpecialty.values.firstWhere(
