@@ -1,7 +1,10 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../data/services/coach_profile_service.dart';
+import '../../domain/coach_profile.dart';
 import '../widgets/coach_header.dart';
 import '../widgets/coach_quick_actions.dart';
 import '../widgets/coach_today_agenda.dart';
@@ -19,6 +22,8 @@ class CoachDashboardPage extends StatefulWidget {
 class _CoachDashboardPageState extends State<CoachDashboardPage> {
   int _currentIndex = 0;
 
+  late Future<CoachProfile?> _coachProfileFuture;
+
   final List<CoachTask> _tasks = [
     const CoachTask(
       id: '1',
@@ -34,8 +39,37 @@ class _CoachDashboardPageState extends State<CoachDashboardPage> {
     ),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      _coachProfileFuture =
+          CoachProfileService().getProfile(user.uid);
+    } else {
+      _coachProfileFuture = Future.value(null);
+    }
+  }
+
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
+  }
+
+  Future<void> _copyCoachId(String coachId) async {
+    await Clipboard.setData(
+      ClipboardData(text: coachId),
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('CoachID copiado com sucesso!'),
+        backgroundColor: Color(0xFF242424),
+      ),
+    );
   }
 
   void _toggleTask(String taskId) {
@@ -65,6 +99,121 @@ class _CoachDashboardPageState extends State<CoachDashboardPage> {
     );
   }
 
+  Widget _buildCoachIdCard() {
+    return FutureBuilder<CoachProfile?>(
+      future: _coachProfileFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF191919),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError || snapshot.data == null) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF191919),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Text(
+              'Não foi possível carregar seu CoachID.',
+              style: TextStyle(
+                color: Colors.white70,
+              ),
+            ),
+          );
+        }
+
+        final coachId = snapshot.data!.coachId;
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFF191919),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: const Color(0xFF303030),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(
+                    Icons.fingerprint,
+                    color: Color(0xFFFF1010),
+                    size: 22,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'SEU COACH ID',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: SelectableText(
+                      coachId,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => _copyCoachId(coachId),
+                    tooltip: 'Copiar CoachID',
+                    icon: const Icon(
+                      Icons.copy,
+                      color: Color(0xFFFF1010),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              const Text(
+                'Compartilhe este código com seus alunos '
+                'para que eles possam solicitar uma vinculação '
+                'ao seu perfil profissional.',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -83,10 +232,14 @@ class _CoachDashboardPageState extends State<CoachDashboardPage> {
               CoachHeader(
                 coachName: coachName,
                 onSettingsTap: () {
-                 _showComingSoon('Configurações');
-               },
-               onLogoutTap: _logout,
-            ),
+                  _showComingSoon('Configurações');
+                },
+                onLogoutTap: _logout,
+              ),
+
+              const SizedBox(height: 25),
+
+              _buildCoachIdCard(),
 
               const SizedBox(height: 34),
 

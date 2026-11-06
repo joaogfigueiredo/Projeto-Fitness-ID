@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../../data/user_profile_service.dart';
 import '../../../student/presentation/pages/student_dashboard_page.dart';
 import '../../../coach/presentation/pages/coach_dashboard_page.dart';
+import '../../../coach/presentation/pages/coach_profile_setup_page.dart';
+import '../../../coach/data/services/coach_profile_service.dart';
 import 'login_page.dart';
 
 class AuthGate extends StatelessWidget {
@@ -66,7 +68,37 @@ class AuthGate extends StatelessWidget {
             }
 
             if (profile.isCoach) {
-              return const CoachDashboardPage();
+              return FutureBuilder(
+                future: CoachProfileService().getProfile(user.uid),
+                builder: (context, coachSnapshot) {
+                  if (coachSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const Scaffold(
+                      body: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+
+                  if (coachSnapshot.hasError) {
+                    return const Scaffold(
+                      body: Center(
+                        child: Text(
+                          'Erro ao carregar perfil profissional.',
+                        ),
+                      ),
+                    );
+                  }
+
+                  final coachProfile = coachSnapshot.data;
+
+                  if (coachProfile == null) {
+                    return const CoachProfileSetupPage();
+                  }
+
+                  return const CoachDashboardPage();
+                },
+              );
             }
 
             return const Scaffold(

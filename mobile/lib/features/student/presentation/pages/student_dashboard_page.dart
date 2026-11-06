@@ -7,6 +7,8 @@ import '../widgets/student_quick_actions.dart';
 import '../widgets/student_progress_cards.dart';
 import '../widgets/student_daily_goals.dart';
 import '../widgets/student_bottom_navigation.dart';
+import '../widgets/meus_coaches_section.dart';
+import 'link_coach_page.dart';
 
 class StudentDashboardPage extends StatefulWidget {
   const StudentDashboardPage({super.key});
@@ -76,6 +78,19 @@ class _StudentDashboardPageState extends State<StudentDashboardPage> {
               StudentHeader(
                 studentName: studentName,
                 onLogoutTap: _logout,
+              ),
+
+              const SizedBox(height: 24),
+
+            MeusCoachesSection(
+               onLinkCoachTap: () {
+                Navigator.push(
+                 context,
+                    MaterialPageRoute(
+                     builder: (context) => const LinkCoachPage(),
+                  ),
+                 );
+                },
               ),
 
               const SizedBox(height: 30),

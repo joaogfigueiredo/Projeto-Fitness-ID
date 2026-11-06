@@ -3,7 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../auth/data/user_profile_service.dart';
+import '../../data/services/coach_profile_service.dart';
 import '../../domain/coach_profile.dart';
+import 'coach_dashboard_page.dart';
 
 class CoachProfileSetupPage extends StatefulWidget {
   const CoachProfileSetupPage({super.key});
@@ -16,6 +19,8 @@ class CoachProfileSetupPage extends StatefulWidget {
 class _CoachProfileSetupPageState
     extends State<CoachProfileSetupPage> {
   final Set<CoachSpecialty> _selectedSpecialties = {};
+
+  bool _isSaving = false;
 
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
@@ -31,7 +36,7 @@ class _CoachProfileSetupPageState
     });
   }
 
-  void _continueSetup() {
+  Future<void> _continueSetup() async {
     if (_selectedSpecialties.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -43,14 +48,98 @@ class _CoachProfileSetupPageState
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Especialidades selecionadas! '
-          'A próxima etapa será salvar seu perfil.',
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      // Recupera o usuário autenticado.
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        throw StateError('Usuário não autenticado.');
+      }
+
+      // Verifica se o Coach já possui um perfil profissional.
+      final coachProfileService = CoachProfileService();
+
+      final alreadyExists =
+          await coachProfileService.profileExists(user.uid);
+
+      if (alreadyExists) {
+        throw StateError(
+          'Seu perfil profissional já foi criado.',
+        );
+      }
+
+      // Recupera os dados do usuário cadastrado.
+      final userProfile =
+          await UserProfileService().getUserProfile(user.uid);
+
+      if (userProfile == null) {
+        throw StateError(
+          'Não foi possível localizar seu cadastro.',
+        );
+      }
+
+      // Cria o perfil profissional e reserva o CoachID.
+      await coachProfileService.createProfile(
+        uid: user.uid,
+        name: userProfile.name,
+        specialties: _selectedSpecialties.toList(),
+        photoUrl: user.photoURL,
+      );
+
+      if (!mounted) return;
+
+      // Encerra o carregamento.
+      setState(() {
+        _isSaving = false;
+      });
+
+      // Direciona o Coach ao painel principal.
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const CoachDashboardPage(),
         ),
-      ),
-    );
+      );
+    } on FirebaseException catch (error) {
+      if (!mounted) return;
+
+      String message =
+          'Não foi possível salvar seu perfil. Tente novamente.';
+
+      if (error.code == 'permission-denied') {
+        message =
+            'O Firebase recusou a operação. Verifique as permissões.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppTheme.surfaceLight,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error is StateError
+                ? error.message
+                : 'Ocorreu um erro ao configurar seu perfil.',
+          ),
+          backgroundColor: AppTheme.surfaceLight,
+        ),
+      );
+    } finally {
+      if (mounted && _isSaving) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
   }
 
   Widget _buildSpecialtyCard({
@@ -63,7 +152,9 @@ class _CoachProfileSetupPageState
         _selectedSpecialties.contains(specialty);
 
     return GestureDetector(
-      onTap: () => _toggleSpecialty(specialty),
+      onTap: _isSaving
+          ? null
+          : () => _toggleSpecialty(specialty),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(18),
@@ -89,8 +180,7 @@ class _CoachProfileSetupPageState
             const SizedBox(width: 16),
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
@@ -114,8 +204,9 @@ class _CoachProfileSetupPageState
             Checkbox(
               value: isSelected,
               activeColor: AppTheme.primary,
-              onChanged: (_) =>
-                  _toggleSpecialty(specialty),
+              onChanged: _isSaving
+                  ? null
+                  : (_) => _toggleSpecialty(specialty),
             ),
           ],
         ),
@@ -131,8 +222,7 @@ class _CoachProfileSetupPageState
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
 
@@ -150,7 +240,7 @@ class _CoachProfileSetupPageState
                     ),
                   ),
                   IconButton(
-                    onPressed: _logout,
+                    onPressed: _isSaving ? null : _logout,
                     tooltip: 'Sair da conta',
                     icon: const Icon(
                       Icons.logout,
@@ -224,8 +314,7 @@ class _CoachProfileSetupPageState
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Row(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
                       Icons.info_outline,
@@ -254,14 +343,24 @@ class _CoachProfileSetupPageState
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: _continueSetup,
-                  child: const Text(
-                    'Continuar',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  onPressed:
+                      _isSaving ? null : _continueSetup,
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 23,
+                          width: 23,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Continuar',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],
